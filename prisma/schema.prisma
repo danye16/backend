@@ -1,0 +1,78 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+  // La línea 'output' no es necesaria aquí a menos que quieras una ubicación no predeterminada.
+  // Tu configuración actual sin 'output' es la estándar para el backend.
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Artista {
+  id        String   @id @default(cuid())
+  nombre    String   @db.VarChar(100)
+  portada   String?
+
+  // Relación: Un artista tiene muchos álbumes
+  albumes Album[]
+
+  @@map("artistas")
+}
+
+model Album {
+  id              String             @id @default(cuid())
+  titulo          String   @db.VarChar(100)
+  fechaLanzamiento DateTime
+  portada         String?  @db.VarChar(255)
+
+  // Relación con Artista
+  artistaId String
+  artista   Artista @relation(fields: [artistaId], references: [id], onDelete: Cascade)
+
+  // Relaciones
+  canciones Cancion[]
+  generos   AlbumesEnGeneros[] // Relación muchos a muchos con Genero
+
+  @@map("albumes")
+}
+
+model Cancion {
+  id          String   @id @default(cuid())
+  titulo      String   @db.VarChar(100)
+  duracion    Int      // en segundos
+  esFavorito  Boolean @default(false) // NUEVO: Para la playlist de favoritos
+
+  // Relación con Album
+  albumId String
+  album   Album   @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  @@map("canciones")
+}
+
+model Genero {
+  id     Int    @id @default(autoincrement())
+  nombre String @unique @db.VarChar(50)
+  imagen String? @db.VarChar(255) // NUEVO CAMPO: URL de la imagen del género
+
+  // Relación
+  albumes AlbumesEnGeneros[]
+
+  @@map("generos")
+}
+
+// --- Tabla Intermedia (Join Table) ---
+// Para la relación muchos-a-muchos entre Album y Genero
+
+model AlbumesEnGeneros {
+  albumId         String
+  album           Album @relation(fields: [albumId], references: [id], onDelete: Cascade)
+
+  generoId        Int
+  genero          Genero @relation(fields: [generoId], references: [id], onDelete: Cascade)
+
+  @@id([albumId, generoId])
+  @@map("albumes_en_generos")
+}
