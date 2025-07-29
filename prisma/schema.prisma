@@ -1,11 +1,9 @@
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"
-  // La línea 'output' no es necesaria aquí a menos que quieras una ubicación no predeterminada.
-  // Tu configuración actual sin 'output' es la estándar para el backend.
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"] // <-- Agrega esta línea
 }
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
